@@ -22,7 +22,9 @@ def parsey(u):
     for l in ll:
 #        print '****************'
 #        print l
-        l = l.replace('&#039;','')
+        l = l.replace('&#039;','')       
+#        l = l.replace('<strong>','')
+#        l = l.replace('</strong>','')
         m = re.search('<div.+\"show\"(.+)', l)
         if m:
 #            print '****************'
@@ -55,12 +57,13 @@ def parsey(u):
 #            print '****************'
 #            print l, m.group(1)
             rat = m.group(1)
-            mm = re.search('/strong>(.+?)</li', rat)
+            mm = re.search('Rating:</strong>(.+?)</li', rat)
             try:
 #                print rat
                 rat = mm.group(1)
             except:
                 print l, '||||', rat
+
             ep = ep.replace('<','')
             ep = ep.replace('>','')
             ep = ep.replace('\"','')
@@ -69,11 +72,21 @@ def parsey(u):
             ep = ep.replace(',',' ')
             ep = ep.replace('.','')
 
+            if 'span' in ep and 'font' in ep and 'Repeat' in ep:
+                ep = 'Repeat'
+            elif 'span' in ep and 'font' in ep and 'New' in ep:
+                ep = 'New'
+
             sh = sh.replace('.','')
             sh = sh.replace(',','')
 
             if len(ep)<=1:
                 ep = 'None'
+
+            if 'Viewers:' in rat:
+                rat = -1
+            elif 'Share:' in rat:
+                rat = -1
             print 'xxx', sh, '|', ep, '|', rat, len(ep)
             data.append([sh, ep, float(rat)])
     return data
@@ -100,11 +113,10 @@ if __name__=='__main__':
     ofp = open('scrapeTvRatings_1.csv', 'w')
     ofp.write('sh,ep,rat,yr,mn,day,dayofweek,iday,isbb\n')
     bdate = datetime.date(1985, 10, 19)
-              #    edate = datetime.date(2013, 11, 15)
-    edate = datetime.date(2013, 11, 15)
+    edate = datetime.date(2014, 3, 31)
     
-#    bdate = datetime.date(1989, 10, 23)
-#    edate = datetime.date(1989, 10, 23)
+#    bdate = datetime.date(2009, 11, 1)
+#    edate = datetime.date(2009, 11, 1)
 
     ib = bdate.toordinal()
     ie = edate.toordinal()
@@ -116,7 +128,8 @@ if __name__=='__main__':
         day = dd.day
         print yr, mn, day
         if mn<10 or (mn==11 and day>5) or mn>11:
-            continue
+#            continue
+            pass
         u = getDate(yr, mn, day)
         p = parsey(u)
         u.close()
@@ -130,6 +143,16 @@ if __name__=='__main__':
             elif 'MLB' in ip[0]:
                 isbb = 1
             elif 'football' in ip[0].lower():
+                isbb = 2
+            elif 'super bowl' in ip[0].lower():
+                isbb = 2
+            elif 'AFC ' in ip[0]:
+                isbb = 2
+            elif 'NFC ' in ip[0]:
+                isbb = 2
+            elif 'BCS ' in ip[0]:
+                isbb = 2
+            elif 'NFL ' in ip[0]:
                 isbb = 2
             else:
                 isbb = 0
